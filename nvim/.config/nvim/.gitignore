@@ -1,0 +1,11 @@
+tt.*
+.tests
+doc/tags
+debug
+.repro
+foo.*
+*.log
+data
+
+# todd-setup: per-machine nvim overrides (untracked)
+lua/plugins/local.lua

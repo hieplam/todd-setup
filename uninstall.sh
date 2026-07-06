@@ -15,6 +15,8 @@ PACKAGES=(tmux nvim claude)
 # Must match install.sh.
 TARGETS=(
   ".tmux.conf"
+  ".tmux/prefix-highlight.sh"
+  ".tmux/pane-aura.sh"
   ".config/nvim"
   ".claude/statusline-command.sh"
   ".claude/statusline-class.sh"
@@ -49,3 +51,4 @@ for rel in "${TARGETS[@]}"; do
 done
 
 info "Restore complete. Backup left intact at $latest"
+info "Note: cloned tmux plugins in ~/.tmux/plugins were left in place (harmless; rm manually if desired)."

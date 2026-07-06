@@ -47,10 +47,22 @@ files listed above — it never captures the whole directory.
 
 Idempotent. Steps:
 1. Ensure `stow` exists; `brew install stow` if not (fail clearly if no Homebrew).
-2. For each managed leaf target, if it exists as a **real** (non-symlink) file/dir,
+2. Clone tmux plugins (`tpm`, `tokyo-night-tmux`) into `~/.tmux/plugins/` if missing.
+   Done **before** stow so `~/.tmux` is a real dir and Stow folds in (only linking our
+   leaf scripts) instead of hijacking the whole `~/.tmux`.
+3. For each managed leaf target, if it exists as a **real** (non-symlink) file/dir,
    move it to `~/.todd-setup-backup/<timestamp>/` preserving relative path. Existing
    symlinks we own are left alone.
-3. `stow --restow` the packages.
+4. `stow --restow` the packages.
+5. Headless `nvim +Lazy! sync` to front-load Neovim plugins (skipped if nvim absent).
+6. If a tmux server is running, `source-file` the config to reload it.
+
+### Plugins: track vs. clone
+
+- **Tracked in repo** (they're the user's own, unclonable): `~/.tmux/prefix-highlight.sh`,
+  `~/.tmux/pane-aura.sh`.
+- **Cloned by install.sh** (external repos): `tpm`, `tokyo-night-tmux`. nvim plugins are
+  handled by LazyVim/lazy.nvim, which self-bootstraps.
 
 ## uninstall.sh (revert)
 

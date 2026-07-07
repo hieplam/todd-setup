@@ -1,7 +1,8 @@
 # todd-setup
 
-My portable dotfiles — one source of truth for **tmux**, **Neovim** (LazyVim), and
-my **Claude Code statusline**, synced across every machine with [GNU Stow](https://www.gnu.org/software/stow/).
+My portable dotfiles — one source of truth for **tmux**, **Neovim** (LazyVim),
+my **Claude Code statusline**, and my **Karabiner** keymap, synced across every
+machine with [GNU Stow](https://www.gnu.org/software/stow/).
 
 Edit a config on any machine → `git push` → `git pull && ./install.sh` on the next
 machine. Because the real files are symlinks into this repo, a pulled change is live
@@ -14,6 +15,7 @@ immediately.
 | `tmux`  | `~/.tmux.conf`, `~/.tmux/prefix-highlight.sh`, `~/.tmux/pane-aura.sh` | tmux config + custom status/pane scripts |
 | `nvim`  | `~/.config/nvim` | full LazyVim setup incl. `lazy-lock.json` (pinned plugin versions) |
 | `claude`| `~/.claude/statusline-command.sh`, `~/.claude/statusline-class.sh` | Claude Code statusline scripts |
+| `karabiner`| `~/.config/karabiner/karabiner.json` | Caps Lock: hold = HJKL/WASD nav layer, double-tap = tmux prefix `C-a` in a terminal (else `~`) |
 
 Stow "folds into" existing directories like `~/.config`, `~/.claude`, and `~/.tmux`,
 so it only ever creates the leaf symlinks above — it never takes over the whole
@@ -68,3 +70,10 @@ Keep machine-specific tweaks out of the repo:
 
 - macOS with [Homebrew](https://brew.sh)
 - `git`, `tmux`, `nvim` (LazyVim)
+- [Karabiner-Elements](https://karabiner-elements.pqrs.org) (for the `karabiner` package)
+
+> **Karabiner caveat:** the tracked `karabiner.json` is a symlink into this repo,
+> so edit it by hand (as this config is maintained) and Karabiner auto-reloads.
+> Editing via the Karabiner-Elements **UI** rewrites the file in place and can
+> replace the symlink with a plain copy — if that happens, just re-run
+> `./install.sh` to restore the link.

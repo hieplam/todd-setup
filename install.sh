@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGES=(tmux nvim claude)
+PACKAGES=(tmux nvim claude karabiner)
 
 # Leaf paths (relative to $HOME) that Stow will occupy. Kept in sync with
 # uninstall.sh so backup/restore cover exactly what we manage.
@@ -21,6 +21,7 @@ TARGETS=(
   ".config/nvim"
   ".claude/statusline-command.sh"
   ".claude/statusline-class.sh"
+  ".config/karabiner/karabiner.json"
 )
 
 # Third-party tmux plugins to clone into ~/.tmux/plugins (name|repo). These are

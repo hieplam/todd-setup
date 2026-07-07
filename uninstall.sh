@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGES=(tmux nvim claude)
+PACKAGES=(tmux nvim claude karabiner)
 
 # Must match install.sh.
 TARGETS=(
@@ -20,6 +20,7 @@ TARGETS=(
   ".config/nvim"
   ".claude/statusline-command.sh"
   ".claude/statusline-class.sh"
+  ".config/karabiner/karabiner.json"
 )
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }

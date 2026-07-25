@@ -1,0 +1,9 @@
+# Global markdownlint defaults, passed explicitly to markdownlint-cli2 by nvim-lint.
+# See ~/.config/nvim/lua/plugins/markdown.lua
+config:
+  # Line length. Prose here is soft-wrapped (editor wraps, file has long lines),
+  # so an 80-column hard limit flags nearly every paragraph.
+  MD013: false
+  # Multiple top-level (#) headings. Docs like CLAUDE.md use several # sections
+  # rather than one title.
+  MD025: false

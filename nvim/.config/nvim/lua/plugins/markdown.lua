@@ -16,4 +16,15 @@ return {
       { "<leader>cp", "<cmd>MarkdownPreviewToggle<cr>", desc = "Markdown Preview" },
     },
   },
+  {
+    -- nvim-lint pipes the buffer through stdin, so markdownlint-cli2 resolves its
+    -- config against nvim's cwd rather than the file's directory. Point it at a
+    -- fixed global config so the same rules apply to every markdown file.
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = function()
+      require("lint").linters["markdownlint-cli2"].args =
+        { "--config", vim.fn.expand("~/.markdownlint-cli2.yaml"), "-" }
+    end,
+  },
 }

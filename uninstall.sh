@@ -10,14 +10,12 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGES=(tmux nvim claude karabiner)
+PACKAGES=(nvim claude karabiner)
 
 # Must match install.sh.
 TARGETS=(
-  ".tmux.conf"
-  ".tmux/prefix-highlight.sh"
-  ".tmux/pane-aura.sh"
   ".config/nvim"
+  ".markdownlint-cli2.yaml"
   ".claude/statusline-command.sh"
   ".claude/statusline-class.sh"
   ".config/karabiner/karabiner.json"
@@ -28,6 +26,11 @@ warn() { printf '\033[1;33m!! \033[0m%s\n' "$*"; }
 die()  { printf '\033[1;31mxx \033[0m%s\n' "$*" >&2; exit 1; }
 
 command -v stow >/dev/null 2>&1 || die "stow not installed; nothing to remove."
+
+# Same guard as install.sh: a stale PACKAGES entry makes stow abort the whole run.
+for pkg in "${PACKAGES[@]}"; do
+  [[ -d "$REPO_DIR/$pkg" ]] || die "PACKAGES lists '$pkg' but $REPO_DIR/$pkg does not exist."
+done
 
 # --- 1. Remove the symlinks Stow owns ---------------------------------------
 info "Removing symlinks: ${PACKAGES[*]}"
@@ -52,4 +55,3 @@ for rel in "${TARGETS[@]}"; do
 done
 
 info "Restore complete. Backup left intact at $latest"
-info "Note: cloned tmux plugins in ~/.tmux/plugins were left in place (harmless; rm manually if desired)."

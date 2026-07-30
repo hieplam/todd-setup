@@ -1,7 +1,7 @@
 # todd-setup
 
-My portable dotfiles — one source of truth for **tmux**, **Neovim** (LazyVim),
-my **Claude Code statusline**, and my **Karabiner** keymap, synced across every
+My portable dotfiles — one source of truth for **Neovim** (LazyVim), my
+**Claude Code statusline**, and my **Karabiner** keymap, synced across every
 machine with [GNU Stow](https://www.gnu.org/software/stow/).
 
 Edit a config on any machine → `git push` → `git pull && ./install.sh` on the next
@@ -12,22 +12,23 @@ immediately.
 
 | Package | Symlinks to | Contents |
 |---------|-------------|----------|
-| `tmux`  | `~/.tmux.conf`, `~/.tmux/prefix-highlight.sh`, `~/.tmux/pane-aura.sh` | tmux config + custom status/pane scripts |
-| `nvim`  | `~/.config/nvim` | full LazyVim setup incl. `lazy-lock.json` (pinned plugin versions) |
+| `nvim`  | `~/.config/nvim`, `~/.markdownlint-cli2.yaml` | full LazyVim setup incl. `lazy-lock.json` (pinned plugin versions); the yaml is the global markdownlint config `nvim-lint` passes to `markdownlint-cli2` |
 | `claude`| `~/.claude/statusline-command.sh`, `~/.claude/statusline-class.sh` | Claude Code statusline scripts |
 | `karabiner`| `~/.config/karabiner/karabiner.json` | Caps Lock: hold = HJKL/WASD nav layer, double-tap = tmux prefix `C-a` in a terminal (else `~`) |
 
-Stow "folds into" existing directories like `~/.config`, `~/.claude`, and `~/.tmux`,
-so it only ever creates the leaf symlinks above — it never takes over the whole
-directory.
+Those leaf paths are the whole contract: `install.sh` keeps them in a `TARGETS` list and
+creates each one's parent directory (`~/.config`, `~/.claude`, `~/.config/karabiner`)
+*before* running Stow. That matters — left to itself, Stow "tree folds": if a directory
+it would populate is missing, it links the package's whole directory instead of the leaf
+inside it. Pre-creating the parents keeps every link a leaf link.
+
+> tmux used to be tracked here; its config and plugin scripts were removed in
+> `041efca`, so `~/.tmux.conf` is now yours to manage per machine.
 
 ### Plugins (installed by the script, not committed)
 
 Symlinks alone don't bootstrap plugin managers, so `install.sh` also installs them:
 
-- **tmux** — clones `tpm` and the active `tokyo-night-tmux` theme into
-  `~/.tmux/plugins/`. (The commented-out catppuccin/nord/rose-pine themes aren't
-  cloned by default; add them to `TMUX_PLUGINS` in `install.sh` if you switch to one.)
 - **nvim** — runs a headless `Lazy! sync` so LazyVim's plugins are ready immediately.
   LazyVim self-bootstraps `lazy.nvim`, so first launch would install them anyway.
 
@@ -41,9 +42,12 @@ cd ~/repos/todd-setup
 
 `install.sh` will:
 1. Ensure GNU Stow is installed (`brew install stow` if missing).
-2. Back up any pre-existing real config it would replace into
+2. Check every package in `PACKAGES` still exists in the repo, and fail with a clear
+   message if not — otherwise a removed package makes Stow abort and link nothing.
+3. Back up any pre-existing real config it would replace into
    `~/.todd-setup-backup/<timestamp>/` — nothing is ever overwritten or deleted.
-3. Symlink the packages into `$HOME`.
+   A target that resolves back into this repo is skipped, never moved.
+4. Create each target's parent directory, then symlink the packages into `$HOME`.
 
 It's idempotent — re-run it any time (e.g. after a `git pull`).
 
@@ -62,14 +66,12 @@ to its pre-install state. Backups are left intact.
 
 Keep machine-specific tweaks out of the repo:
 
-- **tmux** — put local lines in `~/.tmux.conf.local`; the tracked config ends with
-  `source-file -q ~/.tmux.conf.local`, loaded only if it exists.
 - **nvim** — drop a `lua/plugins/local.lua`; LazyVim auto-loads it and it's gitignored.
 
 ## Requirements
 
 - macOS with [Homebrew](https://brew.sh)
-- `git`, `tmux`, `nvim` (LazyVim)
+- `git`, `nvim` (LazyVim)
 - [Karabiner-Elements](https://karabiner-elements.pqrs.org) (for the `karabiner` package)
 
 > **Karabiner caveat:** the tracked `karabiner.json` is a symlink into this repo,

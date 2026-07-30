@@ -10,10 +10,13 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PACKAGES=(nvim claude karabiner)
+PACKAGES=(tmux nvim claude karabiner)
 
 # Must match install.sh.
 TARGETS=(
+  ".tmux.conf"
+  ".tmux/prefix-highlight.sh"
+  ".tmux/pane-aura.sh"
   ".config/nvim"
   ".markdownlint-cli2.yaml"
   ".claude/statusline-command.sh"

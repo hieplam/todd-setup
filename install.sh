@@ -1,31 +1,42 @@
 #!/usr/bin/env bash
 #
 # todd-setup installer
-# Bootstraps a machine: symlinks the tracked dotfiles (Neovim, Claude Code
-# statusline, Karabiner) into $HOME using GNU Stow, then front-loads Neovim
-# plugins. Idempotent: safe to run repeatedly (e.g. after a git pull).
+# Bootstraps a machine: symlinks the tracked dotfiles (tmux, Neovim, Claude
+# Code statusline, Karabiner) into $HOME using GNU Stow, clones tmux's
+# third-party plugins, then front-loads Neovim plugins. Idempotent: safe to
+# run repeatedly (e.g. after a git pull).
 #
 # Usage:  ./install.sh
 #
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-PACKAGES=(nvim claude karabiner)
+PACKAGES=(tmux nvim claude karabiner)
 
 # Every leaf path (relative to $HOME) that Stow will occupy. Kept in sync with
 # uninstall.sh so backup/restore cover exactly what we manage.
 #
 # Two rules for this list:
-#   - List every leaf a package provides. Step 3 moves a pre-existing real file
+#   - List every leaf a package provides. Step 4 moves a pre-existing real file
 #     out of the way; a leaf that is missing here makes stow abort on a conflict.
-#   - List nothing a package does not provide. Step 3 would move that file into
+#   - List nothing a package does not provide. Step 4 would move that file into
 #     the backup dir and then link nothing back in its place.
 TARGETS=(
+  ".tmux.conf"
+  ".tmux/prefix-highlight.sh"
+  ".tmux/pane-aura.sh"
   ".config/nvim"
   ".markdownlint-cli2.yaml"
   ".claude/statusline-command.sh"
   ".claude/statusline-class.sh"
   ".config/karabiner/karabiner.json"
+)
+
+# Third-party tmux plugins to clone into ~/.tmux/plugins (name|repo). These are
+# external git repos, so they're cloned here rather than committed to this repo.
+TMUX_PLUGINS=(
+  "tpm|https://github.com/tmux-plugins/tpm"
+  "tokyo-night-tmux|https://github.com/janoamaral/tokyo-night-tmux"
 )
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
@@ -57,7 +68,23 @@ for pkg in "${PACKAGES[@]}"; do
   [[ -d "$REPO_DIR/$pkg" ]] || die "PACKAGES lists '$pkg' but $REPO_DIR/$pkg does not exist."
 done
 
-# --- 3. Back up any real (non-symlink) files Stow would collide with ---------
+# --- 3. Clone tmux plugins BEFORE stowing -------------------------------------
+# Cloning first makes ~/.tmux a real directory, so Stow folds into it and only
+# symlinks our leaf scripts instead of hijacking the whole ~/.tmux dir.
+info "Installing tmux plugins into ~/.tmux/plugins…"
+mkdir -p "$HOME/.tmux/plugins"
+for entry in "${TMUX_PLUGINS[@]}"; do
+  name="${entry%%|*}"; url="${entry#*|}"
+  dest="$HOME/.tmux/plugins/$name"
+  if [[ -d "$dest/.git" ]]; then
+    info "  $name already present"
+  else
+    info "  cloning $name"
+    git clone --depth 1 "$url" "$dest"
+  fi
+done
+
+# --- 4. Back up any real (non-symlink) files Stow would collide with ---------
 backed_up=0
 for rel in "${TARGETS[@]}"; do
   tgt="$HOME/$rel"
@@ -68,7 +95,7 @@ for rel in "${TARGETS[@]}"; do
   # It only looks like a stray $HOME file; moving it would delete it from the repo.
   resolved="$(physical_path "$tgt")"
   if [[ -n "$resolved" && "$resolved" == "$REPO_DIR"/* ]]; then
-    warn "$tgt resolves into the repo ($resolved) — not backing up; step 4 relinks it."
+    warn "$tgt resolves into the repo ($resolved) — not backing up; step 5 relinks it."
     continue
   fi
 
@@ -79,14 +106,14 @@ for rel in "${TARGETS[@]}"; do
 done
 [[ $backed_up -eq 1 ]] && info "Originals saved to $BACKUP_DIR"
 
-# --- 4. Symlink the packages into $HOME -------------------------------------
+# --- 5. Symlink the packages into $HOME -------------------------------------
 # Unstow, recreate each leaf's parent directory, then stow — in that order.
 #
 # Stow "tree folds": when a directory it would populate does not exist in $HOME,
 # it symlinks the package's whole directory instead of creating a real directory
 # with leaf symlinks inside. On a machine that has never run Karabiner, that turns
 # ~/.config/karabiner into a link to the repo, which makes every repo file under it
-# look like a $HOME file — and the next run's step 3 then moves karabiner.json OUT
+# look like a $HOME file — and the next run's step 4 then moves karabiner.json OUT
 # of the repo. Creating the parents first forces the leaf-only symlinks we want.
 info "Stowing: ${PACKAGES[*]}"
 stow --dir="$REPO_DIR" --target="$HOME" --delete "${PACKAGES[@]}" 2>/dev/null || true
@@ -95,13 +122,18 @@ for rel in "${TARGETS[@]}"; do
 done
 stow --dir="$REPO_DIR" --target="$HOME" --stow "${PACKAGES[@]}"
 
-# --- 5. Sync Neovim plugins (LazyVim self-bootstraps lazy.nvim on first run) --
+# --- 6. Sync Neovim plugins (LazyVim self-bootstraps lazy.nvim on first run) --
 if command -v nvim >/dev/null 2>&1; then
   info "Syncing Neovim plugins (headless)…"
   nvim --headless "+Lazy! sync" +qa 2>/dev/null || \
     warn "Neovim plugin sync hit an issue; just open nvim to let LazyVim finish."
 else
   warn "nvim not installed — skipping plugin sync (install Neovim, then re-run)."
+fi
+
+# --- 7. Reload tmux config if a server is already running --------------------
+if command -v tmux >/dev/null 2>&1 && tmux info >/dev/null 2>&1; then
+  tmux source-file "$HOME/.tmux.conf" >/dev/null 2>&1 && info "Reloaded running tmux config."
 fi
 
 info "Done. Configs symlink into $REPO_DIR; plugins installed."

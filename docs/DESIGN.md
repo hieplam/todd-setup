@@ -9,10 +9,15 @@ This section records what changed after approval. Everything below it describes 
 original 2026-07-06 design; where the two disagree, `install.sh` and `README.md` are
 the source of truth for what the repo does today.
 
-- **2026-07-30 — `tmux` package dropped.** The tmux config and plugin scripts were
-  removed in `041efca`, so the tmux Stow package, its `TARGETS` entries, the
-  `TMUX_PLUGINS` clone step (original step 2) and the config-reload step (original
-  step 6) are all gone from `install.sh`. Current packages: `nvim`, `claude`,
+- **2026-07-30 — `tmux` package dropped, then restored same day.** The tmux config
+  and plugin scripts were removed in `041efca` (2026-07-06), and the entry below
+  originally recorded that `install.sh` had been cleaned up to match — but nobody
+  had actually rebuilt the config, so `~/.tmux.conf` was a symlink into a file that
+  no longer existed and tmux had been silently running with zero customization
+  (no theme, no Karabiner-gated `C-a` prefix, no keybindings) for three weeks.
+  Restored `tmux/.tmux.conf` and the two helper scripts from `git show 041efca~1`,
+  and put `tmux`, its `TARGETS` entries, and the `TMUX_PLUGINS` clone step back
+  into `install.sh`/`uninstall.sh`. Current packages: `tmux`, `nvim`, `claude`,
   `karabiner`.
 - **`karabiner` package added** after approval — `karabiner/.config/karabiner/karabiner.json`
   → `~/.config/karabiner/karabiner.json`. It predates this amendment and is not in the

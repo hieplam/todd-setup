@@ -1,7 +1,32 @@
 # Design: todd-setup dotfiles sync
 
 **Date:** 2026-07-06
-**Status:** Approved
+**Status:** Approved — superseded in part, see Amendments
+
+## Amendments
+
+This section records what changed after approval. Everything below it describes the
+original 2026-07-06 design; where the two disagree, `install.sh` and `README.md` are
+the source of truth for what the repo does today.
+
+- **2026-07-30 — `tmux` package dropped.** The tmux config and plugin scripts were
+  removed in `041efca`, so the tmux Stow package, its `TARGETS` entries, the
+  `TMUX_PLUGINS` clone step (original step 2) and the config-reload step (original
+  step 6) are all gone from `install.sh`. Current packages: `nvim`, `claude`,
+  `karabiner`.
+- **`karabiner` package added** after approval — `karabiner/.config/karabiner/karabiner.json`
+  → `~/.config/karabiner/karabiner.json`. It predates this amendment and is not in the
+  layout diagram below.
+- **2026-07-30 — tree folding is now prevented explicitly.** The original design assumed
+  `~/.config` and `~/.claude` already exist, so Stow would fold into them and only link
+  leaves. That assumption does not hold for `~/.config/karabiner`, which does not exist
+  until Karabiner-Elements first runs: Stow then linked the package's whole directory,
+  every repo file under it looked like a `$HOME` file, and the backup step moved
+  `karabiner.json` out of the repo on the next run. `install.sh` now unstows, `mkdir -p`s
+  each target's parent, then stows — and the backup step skips any target whose physical
+  path resolves inside the repo.
+- **2026-07-30 — `nvim` also owns `~/.markdownlint-cli2.yaml`** (added in `be915a8`), now
+  listed in `TARGETS` so it is backed up and restored like every other leaf.
 
 ## Problem
 

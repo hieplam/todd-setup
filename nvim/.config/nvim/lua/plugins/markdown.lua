@@ -1,30 +1,4 @@
-local markdownlint_config = vim.fs.joinpath(vim.fn.stdpath("config"), ".markdownlint.jsonc")
-
 return {
-  -- disable MD013 (line-length) and MD060 (table-column-style) everywhere,
-  -- regardless of which project's markdown file is open
-  {
-    "mfussenegger/nvim-lint",
-    optional = true,
-    opts = {
-      linters = {
-        ["markdownlint-cli2"] = {
-          prepend_args = { "--config", markdownlint_config },
-        },
-      },
-    },
-  },
-  {
-    "stevearc/conform.nvim",
-    optional = true,
-    opts = {
-      formatters = {
-        ["markdownlint-cli2"] = {
-          prepend_args = { "--config", markdownlint_config },
-        },
-      },
-    },
-  },
   {
     "MeanderingProgrammer/render-markdown.nvim",
     opts = {},

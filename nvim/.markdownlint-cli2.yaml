@@ -7,3 +7,5 @@ config:
   # Multiple top-level (#) headings. Docs like CLAUDE.md use several # sections
   # rather than one title.
   MD025: false
+  # Table column pipe-alignment style. Not worth enforcing one style.
+  MD060: false

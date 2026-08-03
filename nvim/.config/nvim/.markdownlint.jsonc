@@ -1,0 +1,6 @@
+{
+  // MD013: line-length — noisy for prose/tables, no hard wrap enforced here
+  "MD013": false,
+  // MD060: table-column-style — don't enforce pipe alignment style
+  "MD060": false
+}
